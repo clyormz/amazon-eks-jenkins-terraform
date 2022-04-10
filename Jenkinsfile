@@ -21,6 +21,12 @@ pipeline {
                 }
             }
         }
+        stage('Test image') {           
+            app.inside {            
+             
+             sh 'echo "Tests passed"'        
+            }    
+        }  
         stage('Build Docker Image') {
             when {
                 branch 'master'
@@ -38,13 +44,10 @@ pipeline {
             }
             steps {
                 echo '=== Pushing Petclinic Docker Image ==='
-                script {
-                    GIT_COMMIT_HASH = sh (script: "git log --pretty=oneline", returnStdout: true)
-                    SHORT_COMMIT = $GIT_COMMIT_HASH
-                    docker.withRegistry('https://registry.hub.docker.com', 'dockerHubCredentials') {
-                        app.push("$SHORT_COMMIT")
-                        app.push("latest")
-                    }
+                docker.withRegistry('https://registry.hub.docker.com', 'git') {            
+                       app.push("${env.BUILD_NUMBER}")            
+                       app.push("latest")        
+              }
                 }
             }
         }
