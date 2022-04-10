@@ -33,17 +33,12 @@ pipeline {
             }
         }
         stage('Push Docker Image') {
-            when {
-                branch 'master'
-            }
-            steps {
                 echo '=== Pushing Petclinic Docker Image ==='
                 docker.withRegistry('https://registry.hub.docker.com', 'git') {            
                   app.push("${env.BUILD_NUMBER}")            
-                 app.push("latest")        
-              }    
+                 app.push("latest")  
+             }
            }
-            }
         }
         stage('Remove local images') {
             steps {
