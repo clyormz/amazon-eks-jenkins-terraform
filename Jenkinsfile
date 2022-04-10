@@ -48,9 +48,9 @@ pipeline {
             steps {
                 echo '=== Pushing Petclinic Docker Image ==='
                 script {
-                   GIT_COMMIT_HASH = sh (script: "git log -n 1 --pretty=format:'%H'", returnStdout: true)
+		    GIT_COMMIT_HASH = sh (script: "git log -n 1 --pretty=format:'%H'", returnStdout: true)
                     SHORT_COMMIT = "${GIT_COMMIT_HASH[0..7]}"
-                    docker.withRegistry([ credentialsId: "dockerHubCredentials", url: "" ]) {
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerHubCredentials') {
                         app.push("$SHORT_COMMIT")
                         app.push("latest")
                     }
