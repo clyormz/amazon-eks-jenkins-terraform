@@ -21,12 +21,6 @@ pipeline {
                 }
             }
         }
-        stage('Test image') {           
-            app.inside {            
-             
-             sh 'echo "Tests passed"'        
-            }    
-        }  
         stage('Build Docker Image') {
             when {
                 branch 'master'
