@@ -1,0 +1,60 @@
+pipeline {
+    agent any
+       triggers {
+        pollSCM "* * * * *"
+       }
+    environment {
+		DOCKERHUB_CREDENTIALS=credentials('dockerHubCredentials')
+	}
+    stages {
+        stage('Build Application') { 
+            steps {
+                echo '=== Building Petclinic Application ==='
+                sh 'mvn -B -DskipTests clean package' 
+            }
+        }
+        stage('Test Application') {
+            steps {
+                echo '=== Testing Petclinic Application ==='
+                sh 'mvn test'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+        stage('Login') {
+
+			steps {
+				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+			}
+		}
+        stage('Build Docker Image') {
+            when {
+                branch 'master'
+            }
+            steps {
+                echo '=== Building Petclinic Docker Image ==='
+                script {
+                    app = docker.build("clyormz/petclinic-spinnaker-jenkins")
+                }
+            }
+        }
+		stage('Push') {
+            steps {
+                script{
+                        docker.withRegistry('https://343843244119.dkr.ecr.us-east-2.amazonaws.com', 'aws-demo-credentials') {
+                    app.push("${env.BUILD_NUMBER}")
+                    app.push("latest")
+                    }
+                }
+            }
+        }
+   stage('Deploy'){
+            steps {
+                 sh 'kubectl apply -f deployment.yml'
+            }
+        }
+    }
+}
